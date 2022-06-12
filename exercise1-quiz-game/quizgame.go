@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -11,6 +12,11 @@ import (
 type QuizData struct {
 	Question map[string]string
 }
+
+var (
+	filename  string
+	timelimit int
+)
 
 func NewQuizData() *QuizData {
 	return &QuizData{
@@ -35,21 +41,21 @@ func (q *QuizData) putNewQuestion(line []string) {
 	q.Question[question] = answer
 }
 
-func askQuestions(q *QuizData) int {
+func askQuestions(q *QuizData, limit int) int {
 	correctAnswers := 0
 	index := 1
 	ch := make(chan bool)
-	timer := time.NewTimer(time.Second * 2)
+	timer := time.NewTimer(time.Duration(limit) * time.Second)
 
 	go func() {
 		for question, answer := range q.Question {
-			var a string 
+			var a string
 			fmt.Printf("%d. %s\n", index, question)
 			fmt.Scanln(&a)
 			if a == answer {
-				ch <-true
+				ch <- true
 			} else {
-				ch <-false
+				ch <- false
 			}
 			index++
 		}
@@ -69,7 +75,11 @@ func askQuestions(q *QuizData) int {
 }
 
 func main() {
-	f, err := os.Open("problem.csv")
+	flag.IntVar(&timelimit, "time", 30, "use for time limit for all of your questions to solve (by default 30)")
+	flag.StringVar(&filename, "filename", "problem.csv", "choose which file you want to use to play a quiz")
+	flag.Parse()
+
+	f, err := os.Open(filename)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -77,6 +87,6 @@ func main() {
 	quiz := NewQuizData()
 	quiz.quizReader(csv.NewReader(f))
 
-	correctAnswers := askQuestions(quiz)
+	correctAnswers := askQuestions(quiz, timelimit)
 	fmt.Printf("You got %d correct answers from %d\n", correctAnswers, len(quiz.Question))
 }

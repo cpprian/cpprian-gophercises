@@ -3,7 +3,7 @@
 ## TODO
 - [x] reader csv
 - [x] asking questions with time limit
-- [ ] cli handler 
+- [x] cli handler 
 
 ## Link to exercise details
 https://github.com/gophercises/quiz
