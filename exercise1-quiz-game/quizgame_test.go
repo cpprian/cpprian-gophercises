@@ -1,4 +1,4 @@
-package quizgame
+package main
 
 import (
 	"encoding/csv"
@@ -39,6 +39,8 @@ func TestQuizReader(t *testing.T) {
 		AssertEqual(t, got, want)
 	})
 }
+
+
 
 func AssertEqual[T comparable](t *testing.T, got, want T) {
 	t.Helper()

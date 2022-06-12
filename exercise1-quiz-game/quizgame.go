@@ -1,9 +1,11 @@
-package quizgame
+package main
 
 import (
 	"encoding/csv"
 	"fmt"
 	"log"
+	"os"
+	"time"
 )
 
 type QuizData struct {
@@ -28,11 +30,53 @@ func (q *QuizData) quizReader(reader *csv.Reader) {
 	}
 }
 
-func (q *QuizData) putNewQuestion(line []string) error {
+func (q *QuizData) putNewQuestion(line []string) {
 	question, answer := line[0], line[1]
-	if len(question) == 0 || len(answer) == 0 {
-		return fmt.Errorf("wrong text length")
-	}
 	q.Question[question] = answer
-	return nil
+}
+
+func askQuestions(q *QuizData) int {
+	correctAnswers := 0
+	index := 1
+	ch := make(chan bool)
+	timer := time.NewTimer(time.Second * 2)
+
+	go func() {
+		for question, answer := range q.Question {
+			var a string 
+			fmt.Printf("%d. %s\n", index, question)
+			fmt.Scanln(&a)
+			if a == answer {
+				ch <-true
+			} else {
+				ch <-false
+			}
+			index++
+		}
+	}()
+
+	for {
+		select {
+		case isCorrect := <-ch:
+			if isCorrect {
+				correctAnswers++
+			}
+		case <-timer.C:
+			log.Println("Time's up!")
+			return correctAnswers
+		}
+	}
+}
+
+func main() {
+	f, err := os.Open("problem.csv")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	quiz := NewQuizData()
+	quiz.quizReader(csv.NewReader(f))
+
+	correctAnswers := askQuestions(quiz)
+	fmt.Printf("You got %d correct answers from %d\n", correctAnswers, len(quiz.Question))
 }
