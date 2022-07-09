@@ -1,7 +1,7 @@
 # Exercise #1: Quiz Game
 
 ## TODO
-- [x] reader csv
+- [x] csv reader
 - [x] asking questions with time limit
 - [x] cli handler 
 

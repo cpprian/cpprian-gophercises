@@ -4,6 +4,16 @@ import (
 	"net/http"
 )
 
+func InitMux() *http.ServeMux {
+	init := http.NewServeMux()
+	init.HandleFunc("/", notImplementedPage)
+	return init
+}
+
+func notImplementedPage(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Not implemented, please be patient"))
+}
+
 // MapHandler will return an http.HandlerFunc (which also
 // implements http.Handler) that will attempt to map any
 // paths (keys in the map) to their corresponding URL (values
@@ -11,8 +21,15 @@ import (
 // If the path is not provided in the map, then the fallback
 // http.Handler will be called instead.
 func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.HandlerFunc {
-	//	TODO: Implement this...
-	return nil
+	return func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+		redirect, ok := pathsToUrls[path]
+		if ok {
+			http.Redirect(w, r, redirect, http.StatusMovedPermanently)
+			return
+		}
+		fallback.ServeHTTP(w, r)
+	}
 }
 
 // YAMLHandler will parse the provided YAML and then return

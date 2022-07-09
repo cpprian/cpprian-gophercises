@@ -1,8 +1,7 @@
 # Exercise #2: URL Shortener
 
 ## TODO
-- [ ] implement MapHandler
-- [ ] create main function
+- [x] implement MapHandler
 - [ ] implement YAMLHandler
 - [ ] flag to search for yaml file
 - [ ] implement JSONHandler
