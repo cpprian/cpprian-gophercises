@@ -1,7 +1,12 @@
 package urlhandler
 
 import (
+	"fmt"
+	"io"
 	"net/http"
+	"os"
+
+	"gopkg.in/yaml.v2"
 )
 
 func InitMux() *http.ServeMux {
@@ -32,6 +37,35 @@ func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.Handl
 	}
 }
 
+type YAMLstruct struct {
+	Path string `yaml:"path"`
+	Url  string `yaml:"url"`
+}
+
+func YAMLtoMap(yml []byte) (map[string]string, error) {
+
+	if f, err := os.OpenFile(string(yml), os.O_RDWR, 0644); err == nil {
+		yml, err = io.ReadAll(f)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var paths []YAMLstruct
+	err := yaml.Unmarshal(yml, &paths)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(paths)
+
+	map_paths := make(map[string]string)
+	for _, path := range paths {
+		fmt.Println(path)
+		map_paths[path.Path] = path.Url
+	}
+	return map_paths, nil
+}
+
 // YAMLHandler will parse the provided YAML and then return
 // an http.HandlerFunc (which also implements http.Handler)
 // that will attempt to map any paths to their corresponding
@@ -49,6 +83,10 @@ func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.Handl
 // See MapHandler to create a similar http.HandlerFunc via
 // a mapping of paths to urls.
 func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
-	// TODO: Implement this...
-	return nil, nil
+	paths, err := YAMLtoMap(yml)
+	if err != nil {
+		return nil, err
+	}
+
+	return MapHandler(paths, fallback), nil
 }
