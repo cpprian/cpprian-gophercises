@@ -1,10 +1,12 @@
 package urlhandler
 
 import (
-	"fmt"
+	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"os"
+	"reflect"
 
 	"gopkg.in/yaml.v2"
 )
@@ -17,6 +19,10 @@ func InitMux() *http.ServeMux {
 
 func notImplementedPage(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Not implemented, please be patient"))
+}
+
+type UrlShortener interface {
+	UrlHandler()
 }
 
 // MapHandler will return an http.HandlerFunc (which also
@@ -37,33 +43,66 @@ func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.Handl
 	}
 }
 
+type Urlconvert interface {
+	ConvertToMapPaths(data []byte) (map[string]string, error)
+}
+
 type YAMLstruct struct {
 	Path string `yaml:"path"`
 	Url  string `yaml:"url"`
 }
 
-func YAMLtoMap(yml []byte) (map[string]string, error) {
+type YamlList []YAMLstruct
 
-	if f, err := os.OpenFile(string(yml), os.O_RDWR, 0644); err == nil {
-		yml, err = io.ReadAll(f)
-		if err != nil {
-			return nil, err
-		}
-	}
+func (yml *YamlList) ConvertToMapPaths(data []byte) (map[string]string, error) {
+	ReadDataFromFile(&data)
 
-	var paths []YAMLstruct
-	err := yaml.Unmarshal(yml, &paths)
+	err := yaml.Unmarshal(data, yml)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(paths)
 
-	map_paths := make(map[string]string)
-	for _, path := range paths {
-		fmt.Println(path)
-		map_paths[path.Path] = path.Url
+	return ReturnMapPaths(*yml), nil
+}
+
+func ReadDataFromFile(data *[]byte) {
+	if f, err := os.OpenFile(string(*data), os.O_RDWR, 0644); err == nil {
+		*data, err = io.ReadAll(f)
+		if err != nil {
+			log.Fatalln(err)
+		}
 	}
-	return map_paths, nil
+}
+
+func GetValue(x interface{}) reflect.Value {
+	value := reflect.ValueOf(x)
+
+	if value.Kind() == reflect.Ptr {
+		return value.Elem()
+	}
+	return value
+}
+
+func ReturnMapPaths(data interface{}) map[string]string {
+	val := GetValue(data)
+	if val.Kind() != reflect.Slice && val.Kind() != reflect.Array {
+		log.Println(val.Kind())
+		log.Fatalln("incorrect data type")
+		return nil
+	}
+
+
+
+	paths := make(map[string]string)
+	log.Printf("Data -> %q", reflect.ValueOf(val))
+	log.Printf("Length of array -> %d", val.Len())
+
+	for i := 0; i < val.Len(); i++ {
+		key := val.Index(i).Field(0).String()
+		value := val.Index(i).Field(1).String()
+		paths[key] = value
+	}
+	return paths
 }
 
 // YAMLHandler will parse the provided YAML and then return
@@ -82,9 +121,42 @@ func YAMLtoMap(yml []byte) (map[string]string, error) {
 //
 // See MapHandler to create a similar http.HandlerFunc via
 // a mapping of paths to urls.
-func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
-	paths, err := YAMLtoMap(yml)
+func YAMLHandler(data []byte, fallback http.Handler) (http.HandlerFunc, error) {
+	yaml_struct := &YamlList{}
+	paths, err := yaml_struct.ConvertToMapPaths(data)
 	if err != nil {
+		log.Fatalln(err)
+		return nil, err
+	}
+
+	return MapHandler(paths, fallback), nil
+}
+
+type JSONstruct struct {
+	Path string `json:"path"`
+	Url  string `json:"url"`
+}
+
+type JsonList []JSONstruct
+
+func (jsn *JsonList) ConvertToMapPaths(data []byte) (map[string]string, error) {
+	ReadDataFromFile(&data)
+
+	err := json.Unmarshal(data, jsn)
+	if err != nil {
+		log.Fatalln(err)
+		return nil, err
+	}
+
+	return ReturnMapPaths(*jsn), nil
+}
+
+func JSONHandler(data []byte, fallback http.Handler) (http.HandlerFunc, error) {
+	json_struct := &JsonList{}
+
+	paths, err := json_struct.ConvertToMapPaths(data)
+	if err != nil {
+		log.Fatalln(err)
 		return nil, err
 	}
 

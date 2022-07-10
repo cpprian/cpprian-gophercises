@@ -3,8 +3,7 @@
 ## TODO
 - [x] implement MapHandler
 - [x] implement YAMLHandler
-- [ ] flag to search for yaml file
-- [ ] implement JSONHandler
+- [x] implement JSONHandler
 - [ ] make db for urls
 
 

@@ -26,7 +26,7 @@ func TestMapHandler(t *testing.T) {
 	})
 }
 
-func TestYAMLtoMap(t *testing.T) {
+func TestConverToMappaths(t *testing.T) {
 
 	t.Run("give a string with YAML syntax", func(t *testing.T) {
 		yml := `
@@ -40,7 +40,8 @@ func TestYAMLtoMap(t *testing.T) {
 			"/urlshort-final": "https://github.com/gophercises/urlshort/tree/solution",
 		}
 
-		got, err := YAMLtoMap([]byte(yml)) 
+		yaml_struct := &YamlList{}
+		got, err := yaml_struct.ConvertToMapPaths([]byte(yml))
 		if err != nil {
 			t.Error(err)
 		}
@@ -55,10 +56,59 @@ func TestYAMLtoMap(t *testing.T) {
 			"/lofi-girl": "https://lofimusic.app/lofigirl",
 		}
 
-		got, err := YAMLtoMap([]byte("yaml_test.yml")) 
+		yaml_struct := &YamlList{}
+		got, err := yaml_struct.ConvertToMapPaths([]byte("yaml_test.yml"))
 		if err != nil {
 			t.Error(err)
 		} 
+
+		assertMapPaths(t, got, want)
+	})
+
+	t.Run("give a string with JSON syntax", func(t *testing.T) {
+		jsn := `
+[
+	{
+		"path": "/go",
+		"url": "https://go.dev"
+	},
+	{
+		"path": "/urlshortener",
+		"url": "https://github.com/gophercises/urlshort"
+	},
+	{
+		"path": "/lofi-girl",
+		"url": "https://lofimusic.app/lofigirl"
+	}
+]	
+`
+		want := map[string]string {
+			"/go": "https://go.dev",
+			"/urlshortener": "https://github.com/gophercises/urlshort",
+			"/lofi-girl": "https://lofimusic.app/lofigirl",
+		}
+
+		json_struct := &JsonList{}
+		got, err := json_struct.ConvertToMapPaths([]byte(jsn))
+		if err != nil {
+			t.Error(err)
+		}
+
+		assertMapPaths(t, got, want)
+	})
+
+	t.Run("provide a JSON file", func(t *testing.T) {
+		want := map[string]string {
+			"/go": "https://go.dev",
+			"/urlshortener": "https://github.com/gophercises/urlshort",
+			"/lofi-girl": "https://lofimusic.app/lofigirl",
+		}
+
+		json_struct := &JsonList{}
+		got, err := json_struct.ConvertToMapPaths([]byte("json_test.json"))
+		if err != nil {
+			t.Error(err)
+		}
 
 		assertMapPaths(t, got, want)
 	})
@@ -93,4 +143,21 @@ func assertMapPaths(t testing.TB, got, want map[string]string) {
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("want %v, got %v", want, got)
 	}
+}
+
+func TestJSONHandler(t *testing.T) {
+
+	server := InitMux()
+	t.Run("create HandlerFunc from JSON file", func(t *testing.T) {
+		map_server, err := YAMLHandler([]byte("json_test.json"), server)
+		if err != nil {
+			t.Error(err)
+		} 
+
+		request, _ := http.NewRequest(http.MethodGet, "/lofi-girl", nil)
+		response := httptest.NewRecorder()
+		map_server.ServeHTTP(response, request)
+
+		assertResponseCode(t, response.Result().StatusCode, 301)
+	})	
 }
