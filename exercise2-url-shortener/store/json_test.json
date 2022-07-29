@@ -1,0 +1,14 @@
+[
+    {
+       "path": "/go",
+       "url": "https://go.dev"
+    },
+    {
+       "path": "/urlshortener",
+       "url": "https://github.com/gophercises/urlshort"
+    },
+    {
+       "path": "/lofi-girl",
+       "url": "https://lofimusic.app/lofigirl"
+    }
+ ]
