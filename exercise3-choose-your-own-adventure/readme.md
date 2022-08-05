@@ -1,7 +1,7 @@
 # Exercise #3: Choose Your Own Adventure
 
 ## TODO
-- [ ] JSON Parser
+- [x] JSON Parser
 - [ ] make a http Handler
 - [ ] create templates with http/template
 
