@@ -2,39 +2,21 @@ package adventure
 
 import (
 	"encoding/json"
-	"net/http"
 	"os"
 )
-
-type AdventureStruct struct {
-	Title   string   `json:"title"`
-	Story   []string `json:"story"`
-	Options []struct {
-		Text string `json:"text"`
-		Arc  string `json:"arc"`
-	} `json:"options"`
-}
-
-type AdventureArray map[string]AdventureStruct
 
 type JsonParser interface {
 	Parse(data []byte) error
 }
 
-type AdventureHandler struct {
-	Hello AdventureArray
-	http.Handler
-}
-
 func (adh AdventureHandler) Parse(data []byte) error {
-	err := json.Unmarshal(data, &adh.Hello)
+	err := json.Unmarshal(data, &adh.Content)
 	return err
 }
 
 func InitAdventureHandler() *AdventureHandler {
 	return &AdventureHandler{
 		AdventureArray{},
-		nil,
 	}
 }
 

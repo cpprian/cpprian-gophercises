@@ -2,7 +2,7 @@
 
 ## TODO
 - [x] JSON Parser
-- [ ] make a http Handler
+- [x] make a http Handler
 - [ ] create templates with http/template
 
 
