@@ -3,7 +3,7 @@
 ## TODO
 - [x] JSON Parser
 - [x] make a http Handler
-- [ ] create templates with http/template
+- [x] create templates with http/template
 
 
 ## Link to exercise details
