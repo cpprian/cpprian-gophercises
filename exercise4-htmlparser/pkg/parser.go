@@ -8,7 +8,8 @@ import (
 )
 
 type HrefStruct struct {
-	Href, Text string
+	Href string `xml:"loc"`
+	Text string `xml:"tag"`
 }
 
 type HrefArray []HrefStruct
