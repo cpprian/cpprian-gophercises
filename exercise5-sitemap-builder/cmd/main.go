@@ -1,15 +1,17 @@
 package main
 
 import (
+	"encoding/xml"
 	"fmt"
 	"log"
 	"net/http"
 
 	mypkg "github.com/cpprian/cpprian-gophercises/exercise4-htmlparser/pkg"
+	builder "github.com/cpprian/cpprian-gophercises/exercise5-sitemap-builder/pkg"
 )
 
 func main() {
-	url := "https://go.dev"
+	url := "https://www.calhoun.io"
 	resp, err := http.Get(url)
 	if err != nil {
 		log.Printf("GET error: %v", err)
@@ -25,7 +27,12 @@ func main() {
 	r := mypkg.NewParser()	
 	r.Parse(resp.Body)
 
-	for i := 0; i < len(*r); i++ {
-		fmt.Println((*r)[i].Href, (*r)[i].Text)
+	b := &builder.XmlContent{}
+	b.Build(*r, url)
+
+	hello, err := xml.MarshalIndent(b, " ", " ")
+	if err != nil {
+		log.Printf("Marshal error: %v", err)
 	}
+	fmt.Println(string(hello))
 }
