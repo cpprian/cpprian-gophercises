@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	mypkg "github.com/cpprian/cpprian-gophercises/ex4-htmlparser/pkg"
+	mypkg "github.com/cpprian/cpprian-gophercises/exercise4-htmlparser/pkg"
 )
 
 const (
