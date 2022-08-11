@@ -28,9 +28,9 @@ func main() {
 	r.Parse(resp.Body)
 
 	b := &builder.XmlContent{}
-	b.Build(*r, url)
+	b.Build(*r, url, 0)
 
-	hello, err := xml.MarshalIndent(b, " ", " ")
+	hello, err := xml.MarshalIndent(b, " ", "   ")
 	if err != nil {
 		log.Printf("Marshal error: %v", err)
 	}
