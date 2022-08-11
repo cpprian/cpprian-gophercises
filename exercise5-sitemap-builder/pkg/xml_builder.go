@@ -1,7 +1,13 @@
 package sitemap
 
 import (
+	"strings"
+
 	mypkg "github.com/cpprian/cpprian-gophercises/exercise4-htmlparser/pkg"
+)
+
+var (
+	depth int
 )
 
 type XmlStruct struct {
@@ -16,12 +22,25 @@ type XmlContent struct {
 
 func (xc *XmlContent) Build(ha mypkg.HrefArray, name string) {
 	xc.XmlName = name
+	finder := make(map[string]struct{})
 
 	for _, h := range ha {
-		xc.Body = append(xc.Body,
-			XmlStruct{
-				h.Href,
-				nil,
-			})
+		if !strings.HasPrefix(h.Href, "/") {
+			continue
+		}
+
+		if _, ok := finder[h.Href]; !ok {
+			finder[h.Href] = struct{}{}
+			xc.Body = append(xc.Body,
+				XmlStruct{
+					h.Href,
+					searchForMoreLinks(name + h.Href, 0),
+				})
+		}
 	}
+}
+
+func searchForMoreLinks(link string, depth int) []XmlStruct {
+
+	return nil
 }

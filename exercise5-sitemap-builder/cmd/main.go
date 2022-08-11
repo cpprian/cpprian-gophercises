@@ -34,5 +34,7 @@ func main() {
 	if err != nil {
 		log.Printf("Marshal error: %v", err)
 	}
+
+	fmt.Print(xml.Header)
 	fmt.Println(string(hello))
 }
