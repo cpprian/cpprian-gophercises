@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"io"
 	"strings"
 
@@ -8,13 +9,23 @@ import (
 )
 
 type HrefStruct struct {
-	Href, Text string
+	Href string `xml:"loc"`
+	Text string `xml:"tag"`
 }
 
 type HrefArray []HrefStruct
 
 func NewParser() *HrefArray {
 	return &HrefArray{}
+}
+
+func (ha *HrefArray) String() string {
+	var result string
+
+	for _, h := range *ha {
+		result += fmt.Sprintf("Href: %v, Text: %v\n", h.Href, h.Text)
+	}
+	return result
 }
 
 func (ha *HrefArray) Parse(r io.Reader) error {
@@ -28,20 +39,27 @@ func (ha *HrefArray) Parse(r io.Reader) error {
 }
 
 func (ha *HrefArray) parseElementNode(n *html.Node) {
-	if n.Type == html.ElementNode && n.Data == "a" {
-		for _, a := range n.Attr {
-			if a.Key == "href" && a.Val != "#" {
-				*ha = append(*ha, HrefStruct{
-					Href: a.Val,
-					Text: getContentFromTag(n),
-				})
+	var rec func(*html.Node)
+	rec = func(n *html.Node) {
+		if n.Type == html.ElementNode && n.Data == "a" {
+			for _, a := range n.Attr {
+				if a.Key == "href" && a.Val != "#" {
+					*ha = append(*ha, HrefStruct{
+						Href: a.Val,
+						Text: getContentFromTag(n),
+					})
+				}
 			}
 		}
-	}
 
-	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		ha.parseElementNode(c)
+		if n.FirstChild != nil {
+			rec(n.FirstChild)
+		}
+		if n.NextSibling != nil {
+			rec(n.NextSibling)
+		}
 	}
+	rec(n)
 }
 
 func getContentFromTag(n *html.Node) string {
