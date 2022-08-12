@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/xml"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,8 +12,13 @@ import (
 )
 
 func main() {
-	url := "https://www.calhoun.io"
-	resp, err := http.Get(url)
+	flag.IntVar(&builder.Maxdepth, "d", 3, "how many times the program can come in deeper in links")
+	flag.StringVar(&builder.Website, "w", "https://www.calhoun.io", "choose your website to create xml")
+	flag.Parse()
+
+	fmt.Println(builder.Maxdepth)
+
+	resp, err := http.Get(builder.Website)
 	if err != nil {
 		log.Printf("GET error: %v", err)
 		return
@@ -28,7 +34,7 @@ func main() {
 	r.Parse(resp.Body)
 
 	b := &builder.XmlContent{}
-	b.Build(*r, url, 0)
+	b.Build(*r, builder.Website, 0, builder.Maxdepth)
 
 	hello, err := xml.MarshalIndent(b, " ", "   ")
 	if err != nil {

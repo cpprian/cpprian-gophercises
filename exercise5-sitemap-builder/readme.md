@@ -5,7 +5,7 @@
 - [x] import html_link_parser
 - [x] apply html_link_parser to xml_builder
 - [x] fix links filter
-- [ ] add flags
+- [x] add flags
 - [ ] add tests
 
 

@@ -8,6 +8,11 @@ import (
 	mypkg "github.com/cpprian/cpprian-gophercises/exercise4-htmlparser/pkg"
 )
 
+var (
+	Maxdepth int
+	Website  string
+)
+
 type XmlStruct struct {
 	Name string   `xml:"loc"`
 	Map  XmlArray `xml:"url"`
@@ -20,7 +25,7 @@ type XmlContent struct {
 	Body    XmlArray `xml:"url"`
 }
 
-func (xc *XmlContent) Build(ha mypkg.HrefArray, name string, depth int) {
+func (xc *XmlContent) Build(ha mypkg.HrefArray, name string, depth, maxdepth int) {
 	xc.XmlName = name
 	finder := make(map[string]struct{})
 
@@ -30,23 +35,23 @@ func (xc *XmlContent) Build(ha mypkg.HrefArray, name string, depth int) {
 			continue
 		}
 
-		if _, ok := finder[h.Href]; !ok {
-			finder[h.Href] = struct{}{}
+		if _, ok := finder[data]; !ok {
+			finder[data] = struct{}{}
 			xc.Body = append(xc.Body,
 				XmlStruct{
 					data,
-					searchForMoreLinks(name, data, depth+1, finder),
+					searchForMoreLinks(name, data, finder, depth+1, maxdepth),
 				})
 		}
 	}
 }
 
-func searchForMoreLinks(link string, name string, depth int, finder map[string]struct{}) XmlArray {
-	if depth > 5 {
+func searchForMoreLinks(link string, name string, finder map[string]struct{}, depth, maxdepth int) XmlArray {
+	if depth > maxdepth {
 		return nil
 	}
 
-	resp, err := http.Get(link+name)
+	resp, err := http.Get(link + name)
 	if err != nil {
 		log.Println(err)
 		return nil
@@ -54,7 +59,7 @@ func searchForMoreLinks(link string, name string, depth int, finder map[string]s
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		log.Println(link+name)
+		log.Println(link + name)
 		log.Printf("Get code: %v\n", resp.StatusCode)
 		return nil
 	}
@@ -70,8 +75,8 @@ func searchForMoreLinks(link string, name string, depth int, finder map[string]s
 			continue
 		}
 
-		if _, ok := finder[h.Href]; !ok {
-			finder[h.Href] = struct{}{}
+		if _, ok := finder[data]; !ok {
+			finder[data] = struct{}{}
 			if name == "/" {
 				name = ""
 			}
@@ -79,7 +84,7 @@ func searchForMoreLinks(link string, name string, depth int, finder map[string]s
 			xs.Map = append(xs.Map,
 				XmlStruct{
 					data,
-					searchForMoreLinks(link, h.Href, depth+1, finder),
+					searchForMoreLinks(link, data, finder, depth+1, maxdepth),
 				})
 		}
 	}
