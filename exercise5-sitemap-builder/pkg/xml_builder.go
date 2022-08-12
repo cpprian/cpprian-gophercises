@@ -25,7 +25,8 @@ func (xc *XmlContent) Build(ha mypkg.HrefArray, name string, depth int) {
 	finder := make(map[string]struct{})
 
 	for _, h := range ha {
-		if !strings.HasPrefix(h.Href, "/") {
+		data := strings.TrimPrefix(h.Href, name)
+		if !strings.HasPrefix(data, "/") {
 			continue
 		}
 
@@ -33,8 +34,8 @@ func (xc *XmlContent) Build(ha mypkg.HrefArray, name string, depth int) {
 			finder[h.Href] = struct{}{}
 			xc.Body = append(xc.Body,
 				XmlStruct{
-					h.Href,
-					searchForMoreLinks(name, h.Href, depth+1, finder),
+					data,
+					searchForMoreLinks(name, data, depth+1, finder),
 				})
 		}
 	}
@@ -64,7 +65,8 @@ func searchForMoreLinks(link string, name string, depth int, finder map[string]s
 	xs := &XmlStruct{}
 
 	for _, h := range *newContent {
-		if !strings.HasPrefix(h.Href, "/") {
+		data := strings.TrimPrefix(h.Href, name)
+		if !strings.HasPrefix(data, "/") {
 			continue
 		}
 
@@ -76,7 +78,7 @@ func searchForMoreLinks(link string, name string, depth int, finder map[string]s
 
 			xs.Map = append(xs.Map,
 				XmlStruct{
-					h.Href,
+					data,
 					searchForMoreLinks(link, h.Href, depth+1, finder),
 				})
 		}
