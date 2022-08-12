@@ -1,8 +1,8 @@
 package main
 
 import (
-	"bufio"
-	"os"
+	"fmt"
+	"net/http"
 
 	mypkg "github.com/cpprian/cpprian-gophercises/exercise4-htmlparser/pkg"
 )
@@ -10,10 +10,11 @@ import (
 func main() {
 	href := mypkg.NewParser()
 
-	f, err := os.Open("../testing/ex2.html")
+	f, err := http.Get("https://www.calhoun.io")
 	if err != nil {
 		error.Error(err)
 	}
-	read := bufio.NewReader(f)
-	href.Parse(read)
+
+	href.Parse(f.Body)
+	fmt.Println(href)
 }

@@ -77,7 +77,7 @@ func searchForMoreLinks(link string, name string, depth int, finder map[string]s
 			xs.Map = append(xs.Map,
 				XmlStruct{
 					h.Href,
-					searchForMoreLinks(link, name + strings.TrimRight(h.Href, "/"), depth+1, finder),
+					searchForMoreLinks(link, h.Href, depth+1, finder),
 				})
 		}
 	}
