@@ -1,7 +1,7 @@
 # Exercise #5: Hacker Rank Problem
 
 ## TODO
-- [ ] Camel Case
+- [x] Camel Case
 - [ ] Ceasar Cipher
 
 ## Link to exercise details
