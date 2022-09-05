@@ -22,8 +22,11 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"encoding/binary"
 	"fmt"
+	"log"
 
+	"github.com/boltdb/bolt"
 	"github.com/spf13/cobra"
 )
 
@@ -38,8 +41,39 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("add called")
+		db, err := bolt.Open("todo.db", 0600, nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer db.Close()
+
+		db.Update(func(tx *bolt.Tx) error {
+			b, err := tx.CreateBucketIfNotExists([]byte("todo"))
+			if err != nil {
+				return fmt.Errorf("error bucket: %s", err)
+			}
+
+			id, _ := b.NextSequence()
+			log.Println("Adding task with ID:", id)
+			log.Println("Task:", args[0])
+
+			key := Itob(int(id))
+			err = b.Put(key, []byte(args[0]))
+			return err
+		})
+
+		log.Println("Added task: ", args[0])
 	},
+}
+
+func Itob(v int) []byte {
+	b := make([]byte, 8)
+	binary.BigEndian.PutUint64(b, uint64(v))
+	return b
+}
+
+func Btoi(b []byte) int {
+	return int(binary.BigEndian.Uint64(b))
 }
 
 func init() {

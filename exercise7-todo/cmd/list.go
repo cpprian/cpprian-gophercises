@@ -23,7 +23,9 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 
+	"github.com/boltdb/bolt"
 	"github.com/spf13/cobra"
 )
 
@@ -38,7 +40,22 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("list called")
+		db, err := bolt.Open("todo.db", 0600, nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer db.Close()
+		log.Println("Database opened successfully")
+
+		db.View(func(tx *bolt.Tx) error {
+			b := tx.Bucket([]byte("todo"))
+
+			b.ForEach(func(k, v []byte) error {
+				fmt.Printf("%d: %s\n", Btoi(k), v)
+				return nil
+			})
+			return nil
+		})
 	},
 }
 
