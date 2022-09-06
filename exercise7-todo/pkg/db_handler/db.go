@@ -31,13 +31,36 @@ func AddTask(db *bolt.DB, tasks []string) {
 		b := tx.Bucket([]byte("todo"))
 		id, _ := b.NextSequence()
 
-		err := b.Put(util.Itob(int(id)), []byte(task))
+		newTask, err := GenerateTask(int(id), task)
+		util.IsErrorOccured(err)
+
+		err = b.Put(util.Itob(int(id)), newTask)
 		util.IsErrorOccured(err)
 		return nil
 	})
 }
 
-func DeleteTask(db *bolt.DB, task string) {
+func MarkTaskAsCompleted(db *bolt.DB, task string) {
+	to_mark, err := strconv.Atoi(task)
+	util.IsErrorOccured(err)
+
+	db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("todo"))
+		data := b.Get(util.Itob(to_mark))
+
+		task := ReadTask(data)
+		task.MarkAsCompleted()
+
+		byteTask, err := util.MarshalJSON(task)
+		util.IsErrorOccured(err)
+
+		err = b.Put(util.Itob(task.GetIndex()), byteTask)
+		util.IsErrorOccured(err)
+		return nil
+	})
+}
+
+func RemoveTask(db *bolt.DB, task string) {
 	to_del, err := strconv.Atoi(task)
 	util.IsErrorOccured(err)
 
@@ -49,13 +72,64 @@ func DeleteTask(db *bolt.DB, task string) {
 	})
 }
 
-func PrintTasks(db *bolt.DB) {
+func PrintTasks(db *bolt.DB, check func(Task) bool) {
 	db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("todo"))
 		c := b.Cursor()
+
+		i := 1
 		for k, v := c.First(); k != nil; k, v = c.Next() {
-			fmt.Printf("Task %d: %s\n", util.Btoi(k), v)
+			if data := ReadTask(v); check(data) {
+				fmt.Printf("Task %d: %s\n", i, data.GetTaskName())
+				i++
+			}
 		}
 		return nil
 	})
+}
+
+// delete out of date tasks which is completed
+// order all tasks
+func UpdateDb(db *bolt.DB) {
+	DeleteOutdatedTasks(db)
+
+	taskList := InitStruct()
+	taskList.FillTaskList(db)
+	taskList.OrderList()
+
+	db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("todo"))
+
+		DeleteAllTasks(b)
+		for i, task := range *taskList {
+			byteTask, err := util.MarshalJSON(task)
+			util.IsErrorOccured(err)
+
+			err = b.Put(util.Itob(i), byteTask)
+			util.IsErrorOccured(err)
+		}
+		return nil
+	})
+}
+
+func DeleteOutdatedTasks(db *bolt.DB) {
+	db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("todo"))
+		c := b.Cursor()
+
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			if data := ReadTask(v); data.IsCompleted && !util.IsToday(data.Datatime) {
+				b.Delete(k)
+			}
+		}
+		return nil
+	})
+}
+
+func DeleteAllTasks(b *bolt.Bucket) {
+	c := b.Cursor()
+
+	for k, _ := c.First(); k != nil; k, _ = c.Next() {
+		b.Delete(k)
+	}
 }

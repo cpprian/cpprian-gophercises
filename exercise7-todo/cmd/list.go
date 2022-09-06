@@ -43,7 +43,7 @@ to quickly create a Cobra application.`,
 		defer close()
 
 		log.Println("Listing all tasks...")
-		db.PrintTasks(database)
+		db.PrintTasks(database, db.IsUncompletedTask)
 	},
 }
 

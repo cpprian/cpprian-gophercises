@@ -44,9 +44,10 @@ to quickly create a Cobra application.`,
 		}
 		database, close := db.InitDb()
 		defer close()
+		defer db.UpdateDb(database)
 
-		db.DeleteTask(database, args[0])
-		log.Println("Task deleted successfully")
+		db.MarkTaskAsCompleted(database, args[0])
+		log.Println("Task completed")
 	},
 }
 
