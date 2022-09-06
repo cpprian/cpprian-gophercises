@@ -23,9 +23,8 @@ package cmd
 
 import (
 	"log"
-	"strconv"
 
-	"github.com/boltdb/bolt"
+	db "github.com/cpprian/cpprian-gophercises/exercise7-todo/pkg/db_handler"
 	"github.com/spf13/cobra"
 )
 
@@ -40,26 +39,14 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		db, err := bolt.Open("todo.db", 0600, nil)
-		if err != nil {
-			log.Fatal(err)
+		if len(args) > 1 {
+			log.Fatal("Only one argument (task) is allowed")
 		}
-		defer db.Close()
-		log.Println("Database opened successfully")
-		task, err := strconv.Atoi(args[0])
-		if err != nil {
-			log.Fatal(err)
-		}
+		database, close := db.InitDb()
+		defer close()
 
-		db.Update(func(tx *bolt.Tx) error {
-			b := tx.Bucket([]byte("todo"))
-			err := b.Delete(Itob(task))
-			if err != nil {
-				log.Fatal(err)
-			}
-			return nil
-		})
-		log.Println("Task completed")
+		db.DeleteTask(database, args[0])
+		log.Println("Task deleted successfully")
 	},
 }
 
