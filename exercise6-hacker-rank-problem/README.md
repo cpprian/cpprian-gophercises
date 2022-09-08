@@ -1,8 +1,8 @@
-# Exercise #5: Hacker Rank Problem
+# Exercise #6: Hacker Rank Problem
 
 ## TODO
 - [x] Camel Case
-- [ ] Ceasar Cipher
+- [x] Ceasar Cipher
 
 ## Link to exercise details
 https://courses.calhoun.io/lessons/les_goph_32
