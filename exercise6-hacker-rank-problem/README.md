@@ -1,4 +1,4 @@
-# Exercise #5: Hacker Rank Problem
+# Exercise #6: Hacker Rank Problem
 
 ## TODO
 - [x] Camel Case
