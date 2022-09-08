@@ -2,7 +2,7 @@
 
 ## TODO
 - [x] Camel Case
-- [ ] Ceasar Cipher
+- [x] Ceasar Cipher
 
 ## Link to exercise details
 https://courses.calhoun.io/lessons/les_goph_32
